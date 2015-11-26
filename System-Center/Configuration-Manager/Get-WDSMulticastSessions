@@ -2,7 +2,7 @@
 # PowerShell Source File -- WDSMulticastMonitor.ps1
 #
 # AUTHOR: 	Mattias Benninge
-# MODIFIED BY: 
+# MODIFIED BY:  Jean-Paul van Ravensberg
 # COMPANY: 
 # DATE: 2012-03-26
 # VERSION: 01
@@ -58,7 +58,14 @@ for ($i=1; $i -lt ($Count + 1); $i++){
 }
 
 #Output all valid streams
+If ($NSChoice -ne $Null) {
 $NSChoice.GetEnumerator() | Sort-Object Name
+}
+
+Else {
+Write-Output "No valid streams found"
+Break
+}
 
 #Prompt for user to select which stream to list clients for
     Do {     
