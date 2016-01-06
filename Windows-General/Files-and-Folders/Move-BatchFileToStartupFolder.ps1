@@ -1,3 +1,12 @@
+# ----------------------------------------------------------------------------- 
+# Script: Move-BatchFileToStartupFolder.ps1 
+# Author: Jean-Paul van Ravensberg
+# Date: 06-01-2016 - 16:26
+# Keywords: 
+# Comments: 
+# 
+# -----------------------------------------------------------------------------
+
 Import-module ActiveDirectory
 $Users = Get-ADGroupMember Lync2013 -Recursive | % SamAccountName | Sort
 
