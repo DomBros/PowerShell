@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------
 
 #Import-module ConfigurationManager
+#Import-Module "D:\Program Files\Microsoft Configuration Manager\AdminConsole\bin\ConfigurationManager.psd1"
 
 $SiteServer = 'CM01'
 $SiteCode = 'PR1'
