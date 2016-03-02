@@ -24,6 +24,6 @@ foreach ($Computer in $Computers) {
 Invoke-Command -ComputerName "VMM01" -ArgumentList $Computer,$DNSSuffix -ScriptBlock {
 $ComputerName = $($args[1]) + $($args[0]) + "$"
 Write-Output "Adding $ComputerName"
-Grant-SmbShareAccess -Name "VMMLibrary" -AccountName $ComputerName -AccessRight Read -Confirm:$False -
+Grant-SmbShareAccess -Name "VMMLibrary" -AccountName $ComputerName -AccessRight Read -Confirm:$False
 }
 }
