@@ -2,7 +2,10 @@
 .SYNOPSIS
   Installs all the necessary components for the deployment of EPIServer.
 .DESCRIPTION
-  <Brief description of script>
+  To do:
+  - Error handling for MSI installation
+  - Configure EPIServer from the script
+  - Remove temporary directory if switch RemoveTempDir is being used
 .NOTES
   Version:        1.0
   Author:         Jean-Paul van Ravensberg, Avanade
