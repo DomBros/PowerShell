@@ -1,6 +1,4 @@
 <#
-.NAME
-Deploy-Episerver.ps1
 .SYNOPSIS
   Installs all the necessary components for the deployment of Episerver.
 .DESCRIPTION
