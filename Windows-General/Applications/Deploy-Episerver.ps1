@@ -1,10 +1,12 @@
 <#
+.NAME
+Deploy-Episerver.ps1
 .SYNOPSIS
-  Installs all the necessary components for the deployment of EPIServer.
+  Installs all the necessary components for the deployment of Episerver.
 .DESCRIPTION
   To do:
   - Error handling for MSI installation
-  - Configure EPIServer from the script
+  - Configure Episerver from the script
   - Remove temporary directory if switch RemoveTempDir is being used
 .NOTES
   Version:        1.0
@@ -12,9 +14,9 @@
   Creation Date:  29-04-2016
   Purpose/Change: Initial script development
 .EXAMPLE
-  . .\Deploy-EPIServer.ps1
+  . .\Deploy-Episerver.ps1
 .LINK
-  GitHub: https://github.com/jvravensberg/PowerShell/blob/master/Windows-General/Applications/Deploy-EPIServer.ps1
+  GitHub: https://github.com/jvravensberg/PowerShell/blob/master/Windows-General/Applications/Deploy-Episerver.ps1
 #>
 
 # Starting script
@@ -34,7 +36,7 @@ $AppDownloads=@{
   "SQLExpress.exe" = "http://download.microsoft.com/download/8/D/D/8DD7BDBA-CEF7-4D8E-8C16-D9F69527F909/ENU/x64/SQLManagementStudio_x64_ENU.exe";
   "IISExpress.msi" = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=48264&6B49FDFB-8E5B-4B07-BC31-15695C5A2143=1";
   "dotNET.exe" = "https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/NDP452-KB2901907-x86-x64-AllOS-ENU.exe";
-  "EPIVSExtension.vsix" = "https://visualstudiogallery.msdn.microsoft.com/4ad95160-e72f-4355-b53e-0994d2958d3e/file/76574/15/EPiServerVsExtension.vsix"
+  "EPIVSExtension.vsix" = "https://visualstudiogallery.msdn.microsoft.com/4ad95160-e72f-4355-b53e-0994d2958d3e/file/76574/15/EpiserverVsExtension.vsix"
   }
 
 $OtherApps=@{
@@ -101,7 +103,7 @@ Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists, skipping insta
 # Install PSPackages
 Write-Output "Registering NuGet Package Sources"
 Register-PackageSource -Name "NuGet.org" -ProviderName NuGet -Location "https://www.nuget.org/api/v2/" -Force -ForceBootstrap
-Register-PackageSource -Name "NuGet EpiServer" -ProviderName NuGet -Location "http://nuget.episerver.com/feed/packages.svc/" -Force -ForceBootstrap
+Register-PackageSource -Name "NuGet Episerver" -ProviderName NuGet -Location "http://nuget.Episerver.com/feed/packages.svc/" -Force -ForceBootstrap
 
 Write-Output "Installing NuGet Package Sources"
 ForEach($PSPackage in $PSPackages.GetEnumerator()) {
