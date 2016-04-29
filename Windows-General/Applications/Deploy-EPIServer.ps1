@@ -14,7 +14,7 @@
 .EXAMPLE
   . .\Deploy-EPIServer.ps1
 .LINK
-  https://github.com/jvravensberg/PowerShell/blob/master/Windows-General/Applications/Deploy-EPIServer.ps1
+  GitHub: https://github.com/jvravensberg/PowerShell/blob/master/Windows-General/Applications/Deploy-EPIServer.ps1
 #>
 
 # Starting script
