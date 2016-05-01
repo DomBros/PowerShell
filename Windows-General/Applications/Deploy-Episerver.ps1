@@ -4,6 +4,7 @@
 .DESCRIPTION
   To do:
   - Error handling for MSI installation
+  - Wait with the installation of the EPIServer extension until Visual Studio has been installed.
   - Configure Episerver from the script
   - Remove temporary directory if switch RemoveTempDir is being used
 .NOTES
@@ -38,10 +39,10 @@ $AppDownloads=@{
   }
 
 $OtherApps=@{
-  #"dotNET.exe" = ".\dotNET.exe /q /norestart";
-  #"Firefox.exe" = ".\Firefox.exe -ms";
-  #"SQLExpress.exe" = ".\SQLExpress.exe /q /Action=Install /Hideconsole /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
-  #"VisualStudio.exe" = ".\VisualStudio.exe /Q /S";
+  "dotNET.exe" = ".\dotNET.exe /q /norestart";
+  "Firefox.exe" = ".\Firefox.exe -ms";
+  "SQLExpress.exe" = ".\SQLExpress.exe /q /Action=Install /Hideconsole /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
+  "VisualStudio.exe" = ".\VisualStudio.exe /Q /S";
   "EPIVSExtension.vsix" = "& 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\VSIXInstaller.exe' /q /a /i EPIVSExtension.vsix";
 }
 
