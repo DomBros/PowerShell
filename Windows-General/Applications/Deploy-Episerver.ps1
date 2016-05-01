@@ -4,6 +4,7 @@
 .DESCRIPTION
   To do:
   - Error handling for MSI installation
+  - Replace Invoke-Expression (https://blogs.msdn.microsoft.com/powershell/2011/06/03/invoke-expression-considered-harmful/)
   - Wait with the installation of the EPIServer extension until Visual Studio has been installed.
   - Configure Episerver from the script
   - Remove temporary directory if switch RemoveTempDir is being used
