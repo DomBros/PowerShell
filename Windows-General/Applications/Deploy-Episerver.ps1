@@ -9,6 +9,10 @@
 .PARAMETER PreserveTempDir
   This switch will preserve the temporary directory after running the script.
 .NOTES
+  To-do list:
+  - Add logging to script.
+  - Start from last state after reboot.
+  - Progress bar when downloading apps.
   Version:        1.0
   Author:         Jean-Paul van Ravensberg, Avanade
   Creation Date:  29-04-2016
