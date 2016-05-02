@@ -58,7 +58,7 @@ If ($PreserveTempDir -eq $True) {
 
 # Variables
 #region Variables
-$TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" > $null
+$TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" -ErrorAction SilentlyContinue
 $WMFSource = "https://download.microsoft.com/download/2/C/6/2C6E1B4A-EBE5-48A6-B225-2D2058A9CEFB/Win8.1AndW2K12R2-KB3134758-x64.msu"
 
 $AppDownloads=@{
