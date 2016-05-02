@@ -175,13 +175,8 @@ ForEach($MSIPackage in $MSIPackages) {
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 if (Test-Path $OtherApp.Name -PathType Leaf) {
-    If ($OtherApp.Name -ilike "VisualStudioSetup.exe") {
-        Write-Output "INFO -- Visual Studio Setup requires manual installation. Please proceed with the installation."
-        Start-Process $OtherApp.Name
-        Pause
-    }
-    Elseif ($OtherApp.Name -ilike "SQLExpressSetup.exe") {
-        Write-Output "INFO -- SQL Express Setup requires manual installation. Please proceed with the installation."
+    If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
+        Write-Output "INFO -- $OtherApp.Name requires manual installation. Please proceed with the installation."
         Start-Process $OtherApp.Name
         Pause
     }
