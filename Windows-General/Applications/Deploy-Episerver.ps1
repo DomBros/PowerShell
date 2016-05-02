@@ -58,7 +58,7 @@ If ($PreserveTempDir -eq $True) {
 
 # Variables
 #region Variables
-$TempFolder = Get-Item "$env:TEMP\Deploy-Episerver*"
+$TempFolder = Get-Item "C:\Temp\Deploy-Episerver*"
 $WMFSource = "https://download.microsoft.com/download/2/C/6/2C6E1B4A-EBE5-48A6-B225-2D2058A9CEFB/Win8.1AndW2K12R2-KB3134758-x64.msu"
 
 $AppDownloads=@{
@@ -90,7 +90,7 @@ $PSPackages=@{
 If ($TempFolder -eq $Empty) {
     Write-Output "INFO -- No temporary folder found."
     
-    $TempFolder = "$env:TEMP\Deploy-Episerver-$(Get-Random)"
+    $TempFolder = "C:\TEMP\Deploy-Episerver-$(Get-Random)"
     Write-Output "Creating -- Temporary folder"
     New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
     Set-Location $TempFolder
