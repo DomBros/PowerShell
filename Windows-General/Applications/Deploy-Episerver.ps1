@@ -222,3 +222,7 @@ Else {Write-Output "INFO -- PreserveTempDir switch is set. Temporary directory w
 
 # Finishing script
 Write-Output "--- Finishing script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
+Write-Output "The server needs to be restarted."
+Pause
+Restart-Computer -Force
+Exit
