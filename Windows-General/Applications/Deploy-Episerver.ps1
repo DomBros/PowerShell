@@ -76,8 +76,8 @@ $AppDownloads=@{
 $OtherApps=@{
   "dotNETSetup.exe" = "/q /norestart";
   "FirefoxSetup.exe" = "-ms";
-  "SQLExpressSetup.exe" = "";
-  "VisualStudioSetup.exe" = "";
+  "SQLExpress.exe" = "/QS /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
+  "VisualStudio.exe" = "/Q /S /forcerestart";
   "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\VSIXInstaller.exe" = "/q /a EPIVSExtensionSetup.vsix";
 }
 
@@ -178,9 +178,9 @@ if (Test-Path $OtherApp.Name -PathType Leaf) {
     Write-Output "Installing -- $($OtherApp.Name)"
     If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
         Write-Output "INFO -- $OtherApp.Name installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
+        Write-Output "INFO -- Server will possibly be rebooted during the installation."
     }    
     $OtherAppInstallation = (Start-Process $OtherApp.Name -ArgumentList $OtherApp.Value -Wait -PassThru).ExitCode
-
         If ($OtherAppInstallation -ieq 0) {
         Write-Output "Success -- Installed $($OtherApp.Name) successfully"
         }
