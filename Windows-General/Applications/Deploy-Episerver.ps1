@@ -7,7 +7,6 @@
   - Replace Invoke-Expression (https://blogs.msdn.microsoft.com/powershell/2011/06/03/invoke-expression-considered-harmful/)
   - Wait with the installation of the EPIServer extension until Visual Studio has been installed.
   - Configure Episerver from the script
-  - Remove temporary directory if switch RemoveTempDir is being used
 .NOTES
   Version:        1.0
   Author:         Jean-Paul van Ravensberg, Avanade
@@ -18,6 +17,12 @@
 .LINK
   GitHub: https://github.com/jvravensberg/PowerShell/blob/master/Windows-General/Applications/Deploy-Episerver.ps1
 #>
+
+[CmdletBinding()]
+param (
+[Parameter(Mandatory=$False)]
+[Switch]$PreserveTempDir
+)
 
 # Starting script
 Write-Output "--- Starting script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
@@ -54,21 +59,21 @@ $PSPackages=@{
 
 # Create temporary folder to download the install files
 if (!(Test-Path $TempFolder -PathType Container)) {
-Write-Output "Creating temporary folder"
-New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
-Set-Location $TempFolder
+    Write-Output "Creating temporary folder"
+    New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
+    Set-Location $TempFolder
 }
 Else {Write-Output "Skipping -- Temporary folder already exists"; Set-Location $TempFolder}
 
 # Check if PowerShell 5.0 is installed
 if ($PSVersionTable.PSVersion -lt "5.0"){
-Write-Host "PowerShell 5.0 not installed. Installing now..."
-New-Item -Path "$TempFolder\WMF" -ItemType Directory -ErrorAction Continue
-Write-Output "WARNING: Windows Management Framework 5.0 will be installed. Your server will reboot afterwards. Run this script again after the installation."
-Pause
-Invoke-WebRequest $WMFSource -OutFile "$TempFolder\WMF\WMF.msu"
-Invoke-Expression "$TempFolder\WMF\WMF.msu /quiet"
-Exit
+    Write-Host "PowerShell 5.0 not installed. Installing now..."
+    New-Item -Path "$TempFolder\WMF" -ItemType Directory -ErrorAction Continue
+    Write-Output "WARNING: Windows Management Framework 5.0 will be installed. Your server will reboot afterwards. Run this script again after the installation."
+    Pause
+    Invoke-WebRequest $WMFSource -OutFile "$TempFolder\WMF\WMF.msu"
+    Invoke-Expression "$TempFolder\WMF\WMF.msu /quiet"
+    Exit
 }
 Else {Write-Output "PowerShell 5.0 is installed. Skipping installation"}
 
@@ -76,8 +81,8 @@ Else {Write-Output "PowerShell 5.0 is installed. Skipping installation"}
 ForEach($AppDownload in $AppDownloads.GetEnumerator()) {
 
 if (!(Test-Path $AppDownload.Name -PathType Leaf)) {
-Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists"
-Invoke-WebRequest $AppDownload.Value -OutFile $AppDownload.Name
+    Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists"
+    Invoke-WebRequest $AppDownload.Value -OutFile $AppDownload.Name
 }
 Else {Write-Output "Skipping -- $($AppDownload.name) exists, skipping download."}
 }
@@ -86,16 +91,16 @@ Else {Write-Output "Skipping -- $($AppDownload.name) exists, skipping download."
 $MSIPackages = Get-Item -Path *.msi | % Name
 
 ForEach($MSIPackage in $MSIPackages) {
-Write-Output "Installing -- $MSIPackage"
-msiexec /i $MSIPackage /qn /l* "$MSIPackage.log"
+    Write-Output "Installing -- $MSIPackage"
+    msiexec /i $MSIPackage /qn /l* "$MSIPackage.log"
 }
 
 # Install other applications
 ForEach($OtherApp in $OtherApps.GetEnumerator()) {
 
 if (Test-Path $OtherApp.Name -PathType Leaf) {
-Write-Output "Installing -- $($OtherApp.Name)"
-Invoke-Expression $OtherApp.Value
+    Write-Output "Installing -- $($OtherApp.Name)"
+    Invoke-Expression $OtherApp.Value
 }
 Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists, skipping installation."}
 }
@@ -107,9 +112,16 @@ Register-PackageSource -Name "NuGet Episerver" -ProviderName NuGet -Location "ht
 
 Write-Output "Installing NuGet Package Sources"
 ForEach($PSPackage in $PSPackages.GetEnumerator()) {
-Write-Output "Installing -- $($PSPackage.Name)"
-Install-Package -Name $PSPackage.Name -MinimumVersion $PSPackage.Value -MaximumVersion $PSPackage.Value -Force -ForceBootstrap | Select Name, Status
+    Write-Output "Installing -- $($PSPackage.Name)"
+    Install-Package -Name $PSPackage.Name -MinimumVersion $PSPackage.Value -MaximumVersion $PSPackage.Value -Force -ForceBootstrap | Select Name, Status
 }
+
+# Remove temporary folder
+If ($PreserveTempDir -ne $True) {
+    Write-Output "Deleting temporary directory"
+    Remove-Item $TempFolder -Force
+    }
+Else {Write-Output "PreserveTempDir switch is set. Temporary directory will not be removed."}
 
 # Finishing script
 Write-Output "--- Finishing script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
