@@ -47,6 +47,8 @@ param (
 )
 
 # Starting script
+#Requires -RunAsAdministrator
+#Requires -Version 4.0
 Clear-Host
 Write-Output "--- Starting script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
 If ($PreserveTempDir -eq $True) {
