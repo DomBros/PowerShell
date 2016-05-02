@@ -175,6 +175,18 @@ ForEach($MSIPackage in $MSIPackages) {
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 if (Test-Path $OtherApp.Name -PathType Leaf) {
+    If ($OtherApp.Name -ilike "VisualStudioSetup.exe") {
+        Write-Output "INFO -- Visual Studio Setup requires manual installation. Please proceed with the installation."
+        Start-Process $OtherApp.Name
+        Pause
+    }
+    Elseif ($OtherApp.Name -ilike "SQLExpressSetup.exe") {
+        Write-Output "INFO -- SQL Express Setup requires manual installation. Please proceed with the installation."
+        Start-Process $OtherApp.Name
+        Pause
+    }
+
+    Else {
     Write-Output "Installing -- $($OtherApp.Name)"
     $OtherAppInstallation = (Start-Process $OtherApp.Name -ArgumentList $OtherApp.Value -Wait -PassThru).ExitCode
 
@@ -187,6 +199,7 @@ if (Test-Path $OtherApp.Name -PathType Leaf) {
         Else {
         Write-Output "Failed -- Installation for $($OtherApp.Name) failed. Exit code $OtherAppInstallation"
         }
+    }
 }
 Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists, skipping installation."}
 }
