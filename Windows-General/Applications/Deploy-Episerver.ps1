@@ -124,7 +124,7 @@ Else {Write-Output "Skipping -- PowerShell 5.0 is installed, skipping installati
 ForEach($AppDownload in $AppDownloads.GetEnumerator()) {
 
 if (!(Test-Path $AppDownload.Name -PathType Leaf)) {
-    Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists"
+    Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists."
     
     $AppScriptBlock = {
     # Accept the loop variable across the job-context barrier
@@ -145,6 +145,7 @@ While (Get-Job -State "Running") { Start-Sleep 2 }
 
 # Cleanup
 Remove-Job *
+Write-Output "INFO -- Finished downloading at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
 
 # Install MSI applications
 $MSIPackages = Get-Item -Path *.msi | % Name
