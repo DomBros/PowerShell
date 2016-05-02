@@ -18,9 +18,18 @@
   Author:         Jean-Paul van Ravensberg, Avanade
   Changed Date:   02-05-2016
   Purpose/Change: Added several improvements, including:
-  - Error handling for application installation
+  - Error handling for application installation.
   - Replaced Invoke-Expression (https://blogs.msdn.microsoft.com/powershell/2011/06/03/invoke-expression-considered-harmful/)
   - Only continue with the script when the running application has been processed.
+  - Minor bug fixes.
+  --------------------------------------------------
+  Version:        1.2
+  Author:         Jean-Paul van Ravensberg, Avanade
+  Changed Date:   02-05-2016
+  Purpose/Change: Added several improvements, including:
+  - Downloading files in parallel as a job, instead of downloading one by one.
+  - Replaced the New-GUID command with the Get-Random command, because of compatibility with older PowerShell versions.
+  - Minor bug fixes.
 .EXAMPLE
   PS C:\> .\Deploy-Episerver.ps1
   This will run the script and remove the temporary directory after running the script.
@@ -51,7 +60,7 @@ $WMFSource = "https://download.microsoft.com/download/2/C/6/2C6E1B4A-EBE5-48A6-B
 
 $AppDownloads=@{
   "ChromeSetup.msi" = "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BBED34609-91DA-DE03-91F3-EBA0F7C9B2E3%7D%26lang%3Den%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers/dl/chrome/install/googlechromestandaloneenterprise.msi";
-  "FirefoxSetup.exe" = "htps://download.mozilla.org/?product=firefox-46.0-SSL&os=win&lang=en-US";
+  "FirefoxSetup.exe" = "https://download.mozilla.org/?product=firefox-46.0-SSL&os=win&lang=en-US";
   "WebPISetup.msi" = "http://download.microsoft.com/download/C/F/F/CFF3A0B8-99D4-41A2-AE1A-496C08BEB904/WebPlatformInstaller_amd64_en-US.msi";
   "WebPlatformInstallerSetup.exe" = "http://go.microsoft.com/fwlink/?LinkId=255386";
   "VisualStudioSetup.exe" = "http://go.microsoft.com/fwlink/?LinkID=699337&clcid=0x409";
@@ -78,7 +87,7 @@ $PSPackages=@{
 If ($TempFolder -eq $Empty) {
     Write-Output "INFO -- No temporary folder found."
     
-    $TempFolder = "$env:TEMP\Deploy-Episerver-$((New-GUID).Guid)"
+    $TempFolder = "$env:TEMP\Deploy-Episerver-$(Get-Random)"
     Write-Output "Creating -- Temporary folder"
     New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
     Set-Location $TempFolder
@@ -101,8 +110,7 @@ if ($PSVersionTable.PSVersion -lt "5.0"){
     Write-Output "WARNING -- Windows Management Framework 5.0 will be installed. Your server will reboot afterwards. Run this script again after the installation."
     Pause
     Invoke-WebRequest $WMFSource -OutFile "$TempFolder\WMF\WMF.msu"
-    Start-Process "$TempFolder\WMF\WMF.msu" -arg "/quiet"
-    Exit
+    Start-Process "$TempFolder\WMF\WMF.msu" -ArgumentList "/quiet" -Wait
 }
 Else {Write-Output "Skipping -- PowerShell 5.0 is installed, skipping installation."}
 
@@ -111,10 +119,26 @@ ForEach($AppDownload in $AppDownloads.GetEnumerator()) {
 
 if (!(Test-Path $AppDownload.Name -PathType Leaf)) {
     Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists"
-    Invoke-WebRequest $AppDownload.Value -OutFile $AppDownload.Name
+    
+    $AppScriptBlock = {
+    # Accept the loop variable across the job-context barrier
+    param() 
+    
+    # Download the application
+    Invoke-WebRequest $($args[0]).Value -OutFile "$($args[1])\$(($args[0]).Name)"
+    }
+    # Start the job
+    Start-Job $AppScriptBlock -Name $AppDownload.Name -ArgumentList $AppDownload, $TempFolder  > $null
 }
 Else {Write-Output "Skipping -- $($AppDownload.name) exists, skipping download."}
 }
+
+# Wait for all to complete
+Write-Output "Waiting until all downloads are completed."
+While (Get-Job -State "Running") { Start-Sleep 2 }
+
+# Cleanup
+Remove-Job *
 
 # Install MSI applications
 $MSIPackages = Get-Item -Path *.msi | % Name
