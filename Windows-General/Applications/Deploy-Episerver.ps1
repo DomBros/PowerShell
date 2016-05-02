@@ -195,10 +195,13 @@ ForEach($PSPackage in $PSPackages.GetEnumerator()) {
     Install-Package -Name $PSPackage.Name -MinimumVersion $PSPackage.Value -MaximumVersion $PSPackage.Value -Force -ForceBootstrap | Select Name, Status
 }
 
+# Set location before next command
+Set-Location $env:SystemRoot
+
 # Remove temporary folder
 If ($PreserveTempDir -ne $True) {
     Write-Output "Deleting -- temporary directory"
-    Remove-Item $TempFolder -Force
+    Remove-Item $TempFolder -Force -Recurse
     }
 Else {Write-Output "INFO -- PreserveTempDir switch is set. Temporary directory will not be removed."}
 
