@@ -92,7 +92,7 @@ If ($TempFolder -eq $Empty) {
     
     $TempFolder = "C:\Temp\Deploy-Episerver-$(Get-Random)"
     Write-Output "Creating -- Temporary folder"
-    New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
+    New-Item -Path $TempFolder -ItemType Directory > $null
     Set-Location $TempFolder
 }
 Else {Write-Output "INFO -- Existing temporary folder found."; Set-Location $TempFolder}
