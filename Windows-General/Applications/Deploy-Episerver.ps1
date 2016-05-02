@@ -90,7 +90,7 @@ $PSPackages=@{
 If ($TempFolder -eq $Empty) {
     Write-Output "INFO -- No temporary folder found."
     
-    $TempFolder = "C:\TEMP\Deploy-Episerver-$(Get-Random)"
+    $TempFolder = "C:\Temp\Deploy-Episerver-$(Get-Random)"
     Write-Output "Creating -- Temporary folder"
     New-Item -Path $TempFolder -ItemType Directory -ErrorAction Continue
     Set-Location $TempFolder
