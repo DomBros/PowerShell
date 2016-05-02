@@ -80,8 +80,8 @@ $AppDownloads=@{
 $OtherApps=@{
   "dotNETSetup.exe" = "/q /norestart";
   "FirefoxSetup.exe" = "-ms";
-  "SQLExpress.exe" = "/QS /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
-  "VisualStudio.exe" = "/Q /S /forcerestart";
+  "SQLExpressSetup.exe" = "/QS /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
+  "VisualStudioSetup.exe" = "/Q /S /forcerestart";
   "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\VSIXInstaller.exe" = "/q /a EPIVSExtensionSetup.vsix";
 }
 
