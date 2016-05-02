@@ -191,7 +191,6 @@ if (Test-Path $OtherApp.Name -PathType Leaf) {
         Write-Output "Failed -- Installation for $($OtherApp.Name) failed. Exit code $OtherAppInstallation"
         }
     }
-}
 Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists, skipping installation."}
 }
 
