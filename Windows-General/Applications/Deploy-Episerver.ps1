@@ -114,7 +114,8 @@ if ($PSVersionTable.PSVersion -lt "5.0"){
     Pause
     Invoke-WebRequest $WMFSource -OutFile "$TempFolder\WMF\WMF.msu"
     Write-Output "INFO -- Download complete - installing now."
-    Write-Output "INFO -- Please don't close this window."
+    Write-Output "INFO -- Please don't close this window. The server will reboot shortly."
+    Write-Output "INFO -- Open this script again after the reboot."
     Start-Process "$TempFolder\WMF\WMF.msu" -ArgumentList "/quiet" -Wait
 }
 Else {Write-Output "Skipping -- PowerShell 5.0 is installed, skipping installation."}
