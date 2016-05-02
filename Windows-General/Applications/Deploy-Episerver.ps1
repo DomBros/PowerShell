@@ -93,9 +93,11 @@ If ($TempFolder -eq $Empty) {
     $TempFolder = "C:\Temp\Deploy-Episerver-$(Get-Random)"
     Write-Output "Creating -- Temporary folder"
     New-Item -Path $TempFolder -ItemType Directory > $null
-    Set-Location $TempFolder
 }
-Else {Write-Output "INFO -- Existing temporary folder found."; Set-Location $TempFolder}
+Else {Write-Output "INFO -- Existing temporary folder found."}
+
+# Set the temporary folder as current directory
+Set-Location $TempFolder
 
 # Check if .NET Framework 3.5 is installed for SQL Server Management Tools
 If ((Get-WindowsFeature -Name NET-Framework-Core).InstallState -contains "Installed") {
