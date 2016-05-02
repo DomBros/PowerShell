@@ -76,7 +76,7 @@ $AppDownloads=@{
 $OtherApps=@{
   "dotNETSetup.exe" = "/q /norestart";
   "FirefoxSetup.exe" = "-ms";
-  "SQLExpressSetup.exe" = "/q /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
+  "SQLExpressSetup.exe" = "";
   "VisualStudioSetup.exe" = "";
   "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\VSIXInstaller.exe" = "/q /a EPIVSExtensionSetup.vsix";
 }
