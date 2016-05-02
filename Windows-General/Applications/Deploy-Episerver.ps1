@@ -113,6 +113,8 @@ if ($PSVersionTable.PSVersion -lt "5.0"){
     Write-Output "WARNING -- Windows Management Framework 5.0 will be installed. Your server will reboot afterwards. Run this script again after the installation."
     Pause
     Invoke-WebRequest $WMFSource -OutFile "$TempFolder\WMF\WMF.msu"
+    Write-Output "INFO -- Download complete - installing now."
+    Write-Output "INFO -- Please don't close this window."
     Start-Process "$TempFolder\WMF\WMF.msu" -ArgumentList "/quiet" -Wait
 }
 Else {Write-Output "Skipping -- PowerShell 5.0 is installed, skipping installation."}
