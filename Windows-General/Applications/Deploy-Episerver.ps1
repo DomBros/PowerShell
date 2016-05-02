@@ -175,14 +175,10 @@ ForEach($MSIPackage in $MSIPackages) {
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 if (Test-Path $OtherApp.Name -PathType Leaf) {
-    If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
-        Write-Output "INFO -- $OtherApp.Name requires manual installation. Please proceed with the installation."
-        Start-Process $OtherApp.Name
-        Pause
-    }
-
-    Else {
     Write-Output "Installing -- $($OtherApp.Name)"
+    If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
+        Write-Output "INFO -- $OtherApp.Name installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
+    }    
     $OtherAppInstallation = (Start-Process $OtherApp.Name -ArgumentList $OtherApp.Value -Wait -PassThru).ExitCode
 
         If ($OtherAppInstallation -ieq 0) {
