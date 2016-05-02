@@ -183,7 +183,7 @@ ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -De
 if (Test-Path $OtherApp.Name -PathType Leaf) {
     Write-Output "Installing -- $($OtherApp.Name)"
     If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
-        Write-Output "INFO -- $OtherApp.Name installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
+        Write-Output "INFO -- $($OtherApp.Name) installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
         Write-Output "INFO -- Server will possibly be rebooted during the installation."
     }    
     $OtherAppInstallation = (Start-Process $OtherApp.Name -ArgumentList $OtherApp.Value -Wait -PassThru).ExitCode
