@@ -6,16 +6,10 @@
       "value": "admin123"
     },
     "adminPassword": {
-      "value": "Admin123_!"
+      "value": "GEN-PASSWORD"
     },
-    "storageAccountName": {
-      "value": "storeaccount159pm"
-    },
-    "dnsNameForPublicIP": {
-      "value": "publicip159pm"
-    },
-    "publicIPAddressName": {
-      "value": "ip01"
+    "dnsLabelPrefix": {
+      "value": "GEN-UNIQUE"
     }
   }
 }
