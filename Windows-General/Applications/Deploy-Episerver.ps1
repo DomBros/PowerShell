@@ -179,7 +179,7 @@ Write-Output "INFO -- Server will possibly be rebooted during the installation."
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 # Check if application has already been installed
-$AppInstall = Get-Content $TempFolder\Installed.txt
+$AppInstall = Get-Content $TempFolder\Installed.txt -ErrorAction SilentlyContinue
 
 if ((Test-Path $OtherApp.Name -PathType Leaf) -and ($AppInstall -notcontains $OtherApp.Name)) {
     Write-Output "Installing -- $($OtherApp.Name)"
