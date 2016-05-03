@@ -9,16 +9,13 @@
 .PARAMETER PreserveTempDir
   This switch will preserve the temporary directory after running the script.
 .NOTES
-  To-do list:
-  - Add logging to script.
-  - Start from last state after reboot.
-  - Progress bar when downloading apps.
   Version:        1.0
   Author:         Jean-Paul van Ravensberg, Avanade
   Creation Date:  29-04-2016
   Purpose/Change: Initial script development
   --------------------------------------------------
   Version:        1.1
+  Status:         Draft
   Author:         Jean-Paul van Ravensberg, Avanade
   Changed Date:   02-05-2016
   Purpose/Change: Added several improvements, including:
@@ -28,12 +25,25 @@
   - Minor bug fixes.
   --------------------------------------------------
   Version:        1.2
+  Status:         Draft
   Author:         Jean-Paul van Ravensberg, Avanade
   Changed Date:   02-05-2016
   Purpose/Change: Added several improvements, including:
   - Downloading files in parallel as a job, instead of downloading one by one.
   - Replaced the New-GUID command with the Get-Random command, because of compatibility with older PowerShell versions.
   - Minor bug fixes.
+    --------------------------------------------------
+  Version:        1.3
+  Status:         Final
+  Author:         Jean-Paul van Ravensberg, Avanade
+  Changed Date:   03-05-2016
+  Purpose/Change: Added several improvements, including:
+  - Downloading apps in parallel. (Takes +/- 10 min to download all apps)
+  - Check if app has been installed before.
+  - Reboot after SQL Express and Visual Studio installation.
+  - Removed manual .NET installation because it's installed during Visual Studio installation.
+  - Restart at the end of the script.
+  - Minor bug fixes
 .EXAMPLE
   PS C:\> .\Deploy-Episerver.ps1
   This will run the script and remove the temporary directory after running the script.
@@ -53,7 +63,7 @@ param (
 [Switch]$PreserveTempDir
 )
 
-# Starting script
+# Starting script & writing header information
 Clear-Host
 Write-Output "--- Starting script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
 If ($PreserveTempDir -eq $True) {
@@ -62,9 +72,13 @@ If ($PreserveTempDir -eq $True) {
 
 # Variables
 #region Variables
+# Set temporary directory to folder if folder already exists
 $TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" -ErrorAction SilentlyContinue
+
+# Windows Management Framework 5 download location
 $WMFSource = "https://download.microsoft.com/download/2/C/6/2C6E1B4A-EBE5-48A6-B225-2D2058A9CEFB/Win8.1AndW2K12R2-KB3134758-x64.msu"
 
+# All the applications that needs to be downloaded
 $AppDownloads=@{
   "ChromeSetup.msi" = "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BBED34609-91DA-DE03-91F3-EBA0F7C9B2E3%7D%26lang%3Den%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers/dl/chrome/install/googlechromestandaloneenterprise.msi";
   "FirefoxSetup.exe" = "https://download.mozilla.org/?product=firefox-46.0-SSL&os=win&lang=en-US";
@@ -74,19 +88,20 @@ $AppDownloads=@{
   "IISExpressSetup.msi" = "https://download.microsoft.com/download/C/E/8/CE8D18F5-D4C0-45B5-B531-ADECD637A1AA/Dev14%20Update%201%20MSIs/iisexpress_amd64_en-US.msi";
   }
 
+# Installation query switches for .EXE apps
 $OtherApps=@{
   "FirefoxSetup.exe" = "-ms";
   "SQLExpressSetup.exe" = "/QS /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
   "VisualStudioSetup.exe" = "/passive";
 }
 
+# NuGet Packages that needs to be installed during the installation
 $PSPackages=@{
  "Microsoft.AspNet.Mvc" = "5.2.3";
  }
-
 #endregion
 
-# Create temporary folder to download the install files
+# Create temporary folder to download the install files if it doesn't exists
 If ($TempFolder -eq $Empty) {
     Write-Output "INFO -- No temporary folder found."
     
@@ -99,7 +114,7 @@ Else {Write-Output "INFO -- Existing temporary folder found."}
 # Set the temporary folder as current directory
 Set-Location $TempFolder
 
-# Check if .NET Framework 3.5 is installed for SQL Server Management Tools
+# Check if .NET Framework 3.5 is installed for SQL Server Management Tools. If not: install it
 If ((Get-WindowsFeature -Name NET-Framework-Core).InstallState -contains "Installed") {
     Write-Output "Skipping -- .NET Framework 3.5 is installed, skipping installation."
 }
@@ -108,7 +123,7 @@ Else {
     Install-WindowsFeature -Name NET-Framework-Core
 }
 
-# Check if PowerShell 5.0 is installed
+# Check if PowerShell 5.0 is installed. If not: install it
 if ($PSVersionTable.PSVersion -lt "5.0"){
     Write-Output "Installing -- PowerShell 5.0 not installed."
     New-Item -Path "$TempFolder\WMF" -ItemType Directory -ErrorAction Continue
@@ -125,6 +140,7 @@ Else {Write-Output "Skipping -- PowerShell 5.0 is installed, skipping installati
 # Download files needed for the installation
 ForEach($AppDownload in $AppDownloads.GetEnumerator()) {
 
+# Check if application has already been downloaded. Otherwise, create a job to download it in parallel
 if (!(Test-Path $AppDownload.Name -PathType Leaf)) {
     Write-Output "Downloading -- $($AppDownload.name) because it doesn't exists."
     
@@ -142,10 +158,10 @@ Else {Write-Output "Skipping -- $($AppDownload.name) exists, skipping download."
 }
 
 # Wait for all to complete
-Write-Output "Waiting until all downloads are completed."
+Write-Output "INFO -- Waiting until all downloads are completed."
 While (Get-Job -State "Running") { Start-Sleep 2 }
 
-# Cleanup
+# Remove finished jobs
 Remove-Job *
 Write-Output "INFO -- Finished downloading at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
 
@@ -156,7 +172,8 @@ ForEach($MSIPackage in $MSIPackages) {
     Write-Output "Installing -- $MSIPackage"
     $MSIArguments = "/i `"$MSIPackage`" /qn /l* `"$MSIPackage.log`""
     $MSIInstallation = (Start-Process msiexec -arg $MSIArguments -Wait -PassThru).ExitCode
-
+    
+    # If exit code is 0, the installation finished succesfully
     If ($MSIInstallation -ieq 0) {
         Write-Output "Success -- Installed $MSIPackage successfully"
         }
@@ -176,14 +193,17 @@ ForEach($MSIPackage in $MSIPackages) {
 # Install other applications
 Write-Output "INFO -- Server will possibly be rebooted during the installation."
 
+# Sort objects in $OtherApps by name so that Visual Studio and SQL Express will be installed first
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 # Check if application has already been installed
 $AppInstall = Get-Content $TempFolder\Installed.txt -ErrorAction SilentlyContinue
 
+# If application package exists and if file is not in the "Installed.txt" file, proceed with the installation
 if ((Test-Path $OtherApp.Name -PathType Leaf) -and ($AppInstall -notcontains $OtherApp.Name)) {
     Write-Output "Installing -- $($OtherApp.Name)"
 
+    # Installing Visual Studio or SQL Express could take a long time
     If ($OtherApp.Name -contains "VisualStudioSetup.exe" -or $OtherApp.Name -contains "SQLExpressSetup.exe") {
         Write-Output "INFO -- $($OtherApp.Name) installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"          
     }
@@ -194,7 +214,8 @@ if ((Test-Path $OtherApp.Name -PathType Leaf) -and ($AppInstall -notcontains $Ot
 
         # Add the application name to the Installed.txt file
         Add-Content -Value $($OtherApp.Name) -Path $TempFolder\Installed.txt
-
+            
+            # Reboot when Visual Studio or SQL Express finished the installation
             If ($OtherApp.Name -contains "VisualStudioSetup.exe" -or $OtherApp.Name -contains "SQLExpressSetup.exe") {
             Write-Output "INFO -- Rebooting now at $(Get-Date -Format "dd-MM-yyyy HH:mm")."
             Restart-Computer -Force
@@ -210,21 +231,22 @@ if ((Test-Path $OtherApp.Name -PathType Leaf) -and ($AppInstall -notcontains $Ot
 Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists or already has been installed, skipping installation."}
 }
 
-# Install PSPackages
+# Register Package Providers
 Write-Output "INFO -- Registering NuGet Package Sources"
 Register-PackageSource -Name "NuGet.org" -ProviderName NuGet -Location "https://www.nuget.org/api/v2/" -Force -ForceBootstrap
-Register-PackageSource -Name "NuGet Episerver" -ProviderName NuGet -Location "http://nuget.Episerver.com/feed/packages.svc/" -Force -ForceBootstrap
+Register-PackageSource -Name "NuGet Episerver" -ProviderName NuGet -Location "https://nuget.episerver.com/feed/packages.svc/" -Force -ForceBootstrap
 
-Write-Output "Installing -- NuGet Package Sources"
+# Installing NuGet Packages
+Write-Output "Installing -- NuGet Packages"
 ForEach($PSPackage in $PSPackages.GetEnumerator()) {
     Write-Output "Installing -- $($PSPackage.Name)"
     Install-Package -Name $PSPackage.Name -MinimumVersion $PSPackage.Value -MaximumVersion $PSPackage.Value -Force -ForceBootstrap | Select Name, Status
 }
 
-# Set location before next command
+# Set location before next command. Otherwise the $TempFolder directory could not be removed.
 Set-Location $env:SystemRoot
 
-# Remove temporary folder
+# Remove temporary folder if switch $PreserveTempDir isn't set
 If ($PreserveTempDir -ne $True) {
     Write-Output "Deleting -- temporary directory"
     Remove-Item $TempFolder -Force -Recurse
@@ -233,6 +255,8 @@ Else {Write-Output "INFO -- PreserveTempDir switch is set. Temporary directory w
 
 # Finishing script
 Write-Output "--- Finishing script at $(Get-Date -Format "dd-MM-yyyy HH:mm") ---"
+
+# Reboot server and exit PowerShell
 Write-Output "The server needs to be restarted."
 Pause
 Restart-Computer -Force
