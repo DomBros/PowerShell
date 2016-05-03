@@ -60,6 +60,55 @@ If ($PreserveTempDir -eq $True) {
     Write-Output "INFO -- PreserveTempDir switch is set"
     }
 
+# Functions
+#region Functions
+	function Test-PendingReboot {
+		<#
+		.SYNOPSIS
+			This function tests various registry values to see if the local computer is pending a reboot
+		.NOTES
+			Inspiration from: https://gallery.technet.microsoft.com/scriptcenter/Get-PendingReboot-Query-bdb79542
+		.EXAMPLE
+			PS> Test-PendingReboot
+			
+			This example checks various registry values to see if the local computer is pending a reboot.
+		#>
+		[CmdletBinding()]
+		param ()
+		process {
+			## If any registry value indicates a reboot is pending return True.
+			try {
+				$OperatingSystem = Get-WmiObject -Class Win32_OperatingSystem -Property BuildNumber, CSName
+				
+				# If Vista/2008 & Above query the CBS Reg Key
+				If ($OperatingSystem.BuildNumber -ge 6001) {
+					$PendingReboot = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing' -Name 'RebootPending' -ErrorAction SilentlyContinue
+					if ($PendingReboot) {
+						Write-Verbose -Message 'Reboot pending detected in the Component Based Servicing registry key'
+						return $true
+					}
+				}
+				
+				# Query WUAU from the registry
+				$PendingReboot = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update' -Name 'RebootRequired' -ErrorAction SilentlyContinue
+				if ($PendingReboot) {
+					Write-Verbose -Message 'WUAU has a reboot pending'
+					return $true
+				}
+				
+				# Query PendingFileRenameOperations from the registry
+				$PendingReboot = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name 'PendingFileRenameOperations' -ErrorAction SilentlyContinue
+				if ($PendingReboot -and $PendingReboot.PendingFileRenameOperations) {
+					Write-Verbose -Message 'Reboot pending in the PendingFileRenameOperations registry value'
+					return $true
+				}
+			} catch {
+				Write-Error $_.Exception.Message
+			}
+		}
+	}
+#endregion
+
 # Variables
 #region Variables
 $TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" -ErrorAction SilentlyContinue
@@ -178,17 +227,25 @@ ForEach($MSIPackage in $MSIPackages) {
 }
 
 # Install other applications
+Write-Output "INFO -- Server will possibly be rebooted during the installation."
+
 ForEach($OtherApp in $OtherApps.GetEnumerator() | Sort-Object -Property Name -Descending)  {
 
 if (Test-Path $OtherApp.Name -PathType Leaf) {
     Write-Output "Installing -- $($OtherApp.Name)"
-    If ($OtherApp.Name -ilike "VisualStudioSetup.exe" -or "SQLExpressSetup.exe") {
-        Write-Output "INFO -- $($OtherApp.Name) installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
-        Write-Output "INFO -- Server will possibly be rebooted during the installation."
-    }    
+
     $OtherAppInstallation = (Start-Process $OtherApp.Name -ArgumentList $OtherApp.Value -Wait -PassThru).ExitCode
         If ($OtherAppInstallation -ieq 0) {
         Write-Output "Success -- Installed $($OtherApp.Name) successfully"
+
+            If ($OtherApp.Name -contains "VisualStudioSetup.exe" -or $OtherApp.Name -contains "SQLExpressSetup.exe") {
+            Write-Output "INFO -- $($OtherApp.Name) installation could take up to 60 minutes to complete. Started at $(Get-Date -Format "dd-MM-yyyy HH:mm")"          
+            }
+
+            If ((Test-PendingReboot) -eq $True) {
+            Write-Output "INFO -- Rebooting now at $(Get-Date -Format "dd-MM-yyyy HH:mm")."
+            Restart-Computer -Force
+            }
         }
         Elseif ($OtherAppInstallation -ieq "-2068643838") {
         Write-Output "Success -- The state of the $($OtherApp.Name) installation was not changed after the setup execution."
@@ -196,7 +253,7 @@ if (Test-Path $OtherApp.Name -PathType Leaf) {
         Else {
         Write-Output "Failed -- Installation for $($OtherApp.Name) failed. Exit code $OtherAppInstallation"
         }
-    }
+}
 Else {Write-Output "Skipping -- $($OtherApp.Name) doesn't exists, skipping installation."}
 }
 
