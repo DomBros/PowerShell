@@ -72,8 +72,6 @@ If ($PreserveTempDir -eq $True) {
 
 # Variables
 #region Variables
-# Set temporary directory to folder if folder already exists
-$TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" -ErrorAction SilentlyContinue
 
 # Windows Management Framework 5 download location
 $WMFSource = "https://download.microsoft.com/download/2/C/6/2C6E1B4A-EBE5-48A6-B225-2D2058A9CEFB/Win8.1AndW2K12R2-KB3134758-x64.msu"
@@ -100,6 +98,9 @@ $PSPackages=@{
  "Microsoft.AspNet.Mvc" = "5.2.3";
  }
 #endregion
+
+# Set temporary directory to folder if folder already exists
+$TempFolder = Get-Item "C:\Temp\Deploy-Episerver*" -ErrorAction SilentlyContinue
 
 # Create temporary folder to download the install files if it doesn't exists
 If ($TempFolder -eq $Empty) {
