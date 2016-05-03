@@ -69,20 +69,15 @@ $AppDownloads=@{
   "ChromeSetup.msi" = "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BBED34609-91DA-DE03-91F3-EBA0F7C9B2E3%7D%26lang%3Den%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers/dl/chrome/install/googlechromestandaloneenterprise.msi";
   "FirefoxSetup.exe" = "https://download.mozilla.org/?product=firefox-46.0-SSL&os=win&lang=en-US";
   "WebPISetup.msi" = "http://download.microsoft.com/download/C/F/F/CFF3A0B8-99D4-41A2-AE1A-496C08BEB904/WebPlatformInstaller_amd64_en-US.msi";
-  "WebPlatformInstallerSetup.exe" = "http://go.microsoft.com/fwlink/?LinkId=255386";
   "VisualStudioSetup.exe" = "http://go.microsoft.com/fwlink/?LinkID=699337&clcid=0x409";
   "SQLExpressSetup.exe" = "http://download.microsoft.com/download/8/D/D/8DD7BDBA-CEF7-4D8E-8C16-D9F69527F909/ENU/x64/SQLManagementStudio_x64_ENU.exe";
   "IISExpressSetup.msi" = "https://download.microsoft.com/download/C/E/8/CE8D18F5-D4C0-45B5-B531-ADECD637A1AA/Dev14%20Update%201%20MSIs/iisexpress_amd64_en-US.msi";
-  "dotNETSetup.exe" = "https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/NDP452-KB2901907-x86-x64-AllOS-ENU.exe";
-  "EPIVSExtensionSetup.vsix" = "https://visualstudiogallery.msdn.microsoft.com/4ad95160-e72f-4355-b53e-0994d2958d3e/file/76574/15/EpiserverVsExtension.vsix"
   }
 
 $OtherApps=@{
-  "dotNETSetup.exe" = "/q /norestart";
   "FirefoxSetup.exe" = "-ms";
   "SQLExpressSetup.exe" = "/QS /Action=Install /Hideconsole /IAcceptSQLServerLicenseTerms=True /Features=SQL,Tools /InstanceName=SQLExpress /SQLSYSADMINACCOUNTS=Builtin\Administrators";
   "VisualStudioSetup.exe" = "/passive";
-  "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\VSIXInstaller.exe" = "/q /a EPIVSExtensionSetup.vsix";
 }
 
 $PSPackages=@{
