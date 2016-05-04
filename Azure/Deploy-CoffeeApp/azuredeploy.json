@@ -61,10 +61,13 @@
         "description": "The branch of the GitHub repository to use."
       }
     }
+	"slotName": {
+      "type": "string",
+	  "defaultValue": "Staging",
+      "metadata": {
+        "description": "The name of the extra slot that will be created."
+      }
   },
-  "variables": {
-      "slotName": "Staging"
-   },
   "resources": [
     {
       "apiVersion": "2015-08-01",
@@ -108,9 +111,9 @@
     },
     {
       "apiVersion": "2015-08-01",
-      "name": "[variables('slotName')]",
+      "name": "[parameters('slotName')]",
       "type": "slots",
-      "location": "[parameters('siteLocation')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
       ],
