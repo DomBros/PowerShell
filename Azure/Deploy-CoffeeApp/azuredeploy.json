@@ -60,7 +60,7 @@
       "metadata": {
         "description": "The branch of the GitHub repository to use."
       }
-    }
+    },
 	"slotName": {
       "type": "string",
 	  "defaultValue": "Staging",
@@ -121,6 +121,5 @@
       "resources": [                       
       ]
     }
-	
   ]
 }
