@@ -67,6 +67,7 @@
       "metadata": {
         "description": "The name of the extra slot that will be created."
       }
+	}  
   },
   "resources": [
     {
