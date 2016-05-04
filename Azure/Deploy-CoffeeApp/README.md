@@ -1,4 +1,4 @@
-# Deploy a Coffee Web App linked to the GitHub repository
+# Deploy a Coffee Web App with GitHub
 
 With this template, you can deploy a Web App very quickly.
 
