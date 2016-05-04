@@ -72,6 +72,18 @@
   "resources": [
     {
       "apiVersion": "2015-08-01",
+      "name": "[parameters('slotName')]",
+      "type": "slots",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+      ],
+      "properties": {
+        "name": "[parameters('slotName')]"
+	  },
+    },
+    {
+      "apiVersion": "2015-08-01",
       "name": "[parameters('hostingPlanName')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
@@ -108,18 +120,6 @@
             "IsManualIntegration": true
           }
         }
-      ]
-    },
-    {
-      "apiVersion": "2015-08-01",
-      "name": "[parameters('slotName')]",
-      "type": "slots",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
-      ],
-      "properties": {},
-      "resources": [                       
       ]
     }
   ]
