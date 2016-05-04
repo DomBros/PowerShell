@@ -62,11 +62,6 @@
       }
     }
   },
-  
-  "variables": {
-      "slotName": "Staging"
-   },
-   
   "resources": [
     {
       "apiVersion": "2015-08-01",
@@ -108,18 +103,5 @@
         }
       ]
     }
-    {
-      "apiVersion": "2015-08-01",
-      "name": "[variables('slotName')]",
-      "type": "slots",
-      "location": "[parameters('siteLocation')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
-      ],
-      "properties": {},
-      "resources": [                       
-      ]
-    }
-	
   ]
 }
