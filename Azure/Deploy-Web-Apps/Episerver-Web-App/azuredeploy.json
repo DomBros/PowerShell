@@ -34,6 +34,12 @@
       },
       "defaultValue": "Standard_LRS"
     },
+    "cacheName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the new Azure Redis Cache."
+      }
+    },
     "cacheSKUName": {
       "type": "string",
       "allowedValues": [
@@ -71,184 +77,109 @@
         "description": "The size of the new Azure Redis Cache. "
       }
     },
-    "administratorLogin": {
+    "serviceBusNamespaceName": {
       "type": "string",
       "metadata": {
-        "description": "The admin username of the SQL Server"
+        "description": "Name of the Service Bus namespace"
       }
     },
-    "administratorLoginPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The password of the admin user of the SQL Server"
-      }
-    },
-    "databaseName": {
+    "serviceBusQueueName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the new database to create."
-      }
-    },
-    "collation": {
-      "type": "string",
-      "defaultValue": "SQL_Latin1_General_CP1_CI_AS",
-      "metadata": {
-        "description": "The database collation for governing the proper use of characters."
-      }
-    },
-    "edition": {
-      "type": "string",
-      "defaultValue": "Basic",
-      "allowedValues": [
-        "Basic",
-        "Standard",
-        "Premium"
-      ],
-      "metadata": {
-        "description": "The type of database to create."
-      }
-    },
-    "maxSizeBytes": {
-      "type": "string",
-      "defaultValue": "1073741824",
-      "metadata": {
-        "description": "The maximum size, in bytes, for the database"
-      }
-    },
-    "requestedServiceObjectiveName": {
-      "type": "string",
-      "defaultValue": "Basic",
-      "allowedValues": [
-        "Basic",
-        "S0",
-        "S1",
-        "S2",
-        "P1",
-        "P2",
-        "P3"
-      ],
-      "metadata": {
-        "description": "Describes the performance level for the database"
+        "description": "Name of the Queue"
       }
     }
   },
   "variables": {
-    "cacheName": "[concat('cache', uniqueString(resourceGroup().id))]",
-    "sqlserverName": "[concat('sqlserver', uniqueString(resourceGroup().id))]"
+    "defaultSASKeyName": "RootManageSharedAccessKey",
+    "authRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('defaultSASKeyName'))]"
   },
   "resources": [
     {
-      "name": "[variables('sqlserverName')]",
-      "type": "Microsoft.Sql/servers",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "SqlServer"
-      },
-      "apiVersion": "2014-04-01-preview",
-      "properties": {
-        "administratorLogin": "[parameters('administratorLogin')]",
-        "administratorLoginPassword": "[parameters('administratorLoginPassword')]"
-      },
-      "resources": [
-        {
-          "name": "[parameters('databaseName')]",
-          "type": "databases",
-          "location": "[resourceGroup().location]",
-          "tags": {
-            "displayName": "Database"
-          },
-          "apiVersion": "2014-04-01-preview",
-          "dependsOn": [
-            "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-          ],
-          "properties": {
-            "edition": "[parameters('edition')]",
-            "collation": "[parameters('collation')]",
-            "maxSizeBytes": "[parameters('maxSizeBytes')]",
-            "requestedServiceObjectiveName": "[parameters('requestedServiceObjectiveName')]"
-          }
-        },
-        {
-          "type": "firewallrules",
-          "apiVersion": "2014-04-01-preview",
-          "dependsOn": [
-            "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-          ],
-          "location": "[resourceGroup().location]",
-          "name": "AllowAllWindowsAzureIps",
-          "properties": {
-            "endIpAddress": "0.0.0.0",
-            "startIpAddress": "0.0.0.0"
-          }
-        }
-      ]
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "name": "[parameters('siteName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
       "apiVersion": "2015-08-01",
-      "properties": {
-        "serverFarmId": "[parameters('appServicePlan')]"
+      "name": "[parameters('serviceBusNamespaceName')]",
+      "type": "Microsoft.ServiceBus/Namespaces",
+      "location": "[resourceGroup().location]",
+      "kind": "Messaging",
+      "sku": {
+        "name": "StandardSku",
+        "tier": "Standard"
       },
       "resources": [
         {
           "apiVersion": "2015-08-01",
-          "type": "config",
-          "name": "connectionstrings",
+          "name": "[parameters('serviceBusQueueName')]",
+          "type": "Queues",
           "dependsOn": [
-            "[concat('Microsoft.Web/Sites/', parameters('siteName'))]",
-            "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+            "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
           ],
           "properties": {
-            "TeamContext": {
-              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('databaseName'), ';User Id=', parameters('administratorLogin'), '@', variables('sqlserverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
-              "type": "SQLServer"
+            "path": "[parameters('serviceBusQueueName')]"
+          }
+        }
+	  ]
+    },
+    {
+          "type": "Microsoft.Web/sites",
+          "name": "[parameters('siteName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Cache/Redis/', parameters('cacheName'))]"
+          ],
+          "apiVersion": "2015-08-01",
+          "properties": {
+            "serverFarmId": "[parameters('appServicePlan')]"
+          },
+          "resources": [
+            {
+              "apiVersion": "2015-08-01",
+              "type": "config",
+              "name": "connectionstrings",
+              "dependsOn": [
+                "[concat('Microsoft.Web/Sites/', parameters('siteName'))]"
+              ],
+              "properties": {
+              }
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "type": "config",
+              "name": "appsettings",
+              "dependsOn": [
+                "[concat('Microsoft.Web/Sites/', parameters('siteName'))]",
+                "[concat('Microsoft.Cache/Redis/', parameters('cacheName'))]"
+              ],
+              "properties": {
+                "CacheConnection": "[concat(parameters('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', parameters('cacheName')), '2015-08-01').primaryKey)]"
+              }
+            }
+          ]
+    },
+    {
+          "name": "[parameters('cacheName')]",
+          "type": "Microsoft.Cache/Redis",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [ ],
+          "tags": {
+            "displayName": "cache"
+          },
+          "properties": {
+            "sku": {
+              "name": "[parameters('cacheSKUName')]",
+              "family": "[parameters('cacheSKUFamily')]",
+              "capacity": "[parameters('cacheSKUCapacity')]"
             }
           }
-        },
-        {
-          "apiVersion": "2015-08-01",
-          "type": "config",
-          "name": "appsettings",
-          "dependsOn": [
-            "[concat('Microsoft.Web/Sites/', parameters('siteName'))]",
-            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-          ],
+    },
+    {
+          "type": "Microsoft.Storage/storageAccounts",
+          "name": "[parameters('storageAccount')]",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2015-05-01-preview",
           "properties": {
-            "CacheConnection": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            "accountType": "[parameters('storageAccountType')]"
           }
-        }
-      ]
-    },
-    {
-      "name": "[variables('cacheName')]",
-      "type": "Microsoft.Cache/Redis",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2015-08-01",
-      "dependsOn": [ ],
-      "tags": {
-        "displayName": "cache"
-      },
-      "properties": {
-        "sku": {
-          "name": "[parameters('cacheSKUName')]",
-          "family": "[parameters('cacheSKUFamily')]",
-          "capacity": "[parameters('cacheSKUCapacity')]"
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('storageAccount')]",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2015-05-01-preview",
-      "properties": {
-        "accountType": "[parameters('storageAccountType')]"
-      }
     }
   ]
 }
