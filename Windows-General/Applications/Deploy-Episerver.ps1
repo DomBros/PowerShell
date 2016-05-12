@@ -32,7 +32,7 @@
   - Downloading files in parallel as a job, instead of downloading one by one.
   - Replaced the New-GUID command with the Get-Random command, because of compatibility with older PowerShell versions.
   - Minor bug fixes.
-    --------------------------------------------------
+  --------------------------------------------------
   Version:        1.3
   Status:         Final
   Author:         Jean-Paul van Ravensberg, Avanade
@@ -44,6 +44,14 @@
   - Removed manual .NET installation because it's installed during Visual Studio installation.
   - Restart at the end of the script.
   - Minor bug fixes
+  --------------------------------------------------
+  Version:        1.4
+  Status:         Final
+  Author:         Jean-Paul van Ravensberg, Avanade
+  Changed Date:   12-05-2016
+  Purpose/Change: Added several improvements, including:
+  - Added smtp4dev package to the deployment
+  - Turned off IE Enhanced Security Mode
 .EXAMPLE
   PS C:\> .\Deploy-Episerver.ps1
   This will run the script and remove the temporary directory after running the script.
@@ -84,7 +92,8 @@ $AppDownloads=@{
   "VisualStudioSetup.exe" = "http://go.microsoft.com/fwlink/?LinkID=699337&clcid=0x409";
   "SQLExpressSetup.exe" = "http://download.microsoft.com/download/8/D/D/8DD7BDBA-CEF7-4D8E-8C16-D9F69527F909/ENU/x64/SQLManagementStudio_x64_ENU.exe";
   "IISExpressSetup.msi" = "https://download.microsoft.com/download/C/E/8/CE8D18F5-D4C0-45B5-B531-ADECD637A1AA/Dev14%20Update%201%20MSIs/iisexpress_amd64_en-US.msi";
-  }
+  "smtp4devSetup.zip" = "https://smtp4dev.codeplex.com/downloads/get/269147#";
+}
 
 # Installation query switches for .EXE apps
 $OtherApps=@{
@@ -93,10 +102,26 @@ $OtherApps=@{
   "VisualStudioSetup.exe" = "/passive";
 }
 
+# Portable installation locations
+$PortableApps=@{
+  "smtp4dev.exe" = "$ENV:AppData\Microsoft\Windows\Start Menu\Programs\Startup";
+}
+
 # NuGet Packages that needs to be installed during the installation
 $PSPackages=@{
  "Microsoft.AspNet.Mvc" = "5.2.3";
  }
+#endregion
+
+#region Functions
+function Disable-InternetExplorerESC {
+    $AdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+    $UserKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
+    Set-ItemProperty -Path $AdminKey -Name "IsInstalled" -Value 0
+    Set-ItemProperty -Path $UserKey -Name "IsInstalled" -Value 0
+    Stop-Process -Name iexplore -Force
+    Write-Output "IE Enhanced Security Configuration (ESC) has been disabled."
+}
 #endregion
 
 # Set temporary directory to folder if folder already exists
@@ -114,6 +139,9 @@ Else {Write-Output "INFO -- Existing temporary folder found."}
 
 # Set the temporary folder as current directory
 Set-Location $TempFolder
+
+# Disable Internet Explorer Enhanced Security
+Disable-InternetExplorerESC
 
 # Check if .NET Framework 3.5 is installed for SQL Server Management Tools. If not: install it
 If ((Get-WindowsFeature -Name NET-Framework-Core).InstallState -contains "Installed") {
@@ -165,6 +193,34 @@ While (Get-Job -State "Running") { Start-Sleep 2 }
 # Remove finished jobs
 Remove-Job *
 Write-Output "INFO -- Finished downloading at $(Get-Date -Format "dd-MM-yyyy HH:mm")"
+
+# Create unzip folder for the ZIP contents
+$UnzipFolder = Get-Item $TempFolder\Unzip -ErrorAction SilentlyContinue
+If ($UnzipFolder -eq $Empty) {
+    Write-Output "INFO -- No unzip folder found."
+    
+    $UnzipFolder = "$TempFolder\Unzip"
+    Write-Output "Creating -- Unzip folder"
+    New-Item -Path $UnzipFolder -ItemType Directory > $null
+}
+Else {Write-Output "INFO -- Existing temporary folder found."}
+
+# Unpack portable applications
+$ZipPackages = Get-Item -Path *.zip | % Name
+
+ForEach ($ZipPackage in $ZipPackages) {
+    Write-Output "Unpacking -- $ZIPPackage"
+    $ZipSource = $TempFolder + "\" + $ZipPackage
+    
+    Add-Type -AssemblyName “system.io.compression.filesystem”
+    [io.compression.zipfile]::ExtractToDirectory($ZipSource, $UnzipFolder)
+}
+
+# Move unpacked portable applications to folder
+Foreach ($PortableApp in $PortableApps.GetEnumerator()) {
+    Write-Output "Moving -- $($PortableApp.Name)"
+    Copy-Item ($UnzipFolder + "\" + $($PortableApp.Name)) $PortableApp.Value -Force
+}
 
 # Install MSI applications
 $MSIPackages = Get-Item -Path *.msi | % Name
