@@ -110,7 +110,7 @@ $PortableApps=@{
 # NuGet Packages that needs to be installed during the installation
 $PSPackages=@{
  "Microsoft.AspNet.Mvc" = "5.2.3";
- }
+}
 #endregion
 
 #region Functions
