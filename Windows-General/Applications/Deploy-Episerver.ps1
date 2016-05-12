@@ -203,14 +203,14 @@ If ($UnzipFolder -eq $Empty) {
     Write-Output "Creating -- Unzip folder"
     New-Item -Path $UnzipFolder -ItemType Directory > $null
 }
-Else {Write-Output "INFO -- Existing temporary folder found."}
+Else {Write-Output "INFO -- Existing unzip folder found."}
 
 # Unpack portable applications
 $ZipPackages = Get-Item -Path *.zip | % Name
 
 ForEach ($ZipPackage in $ZipPackages) {
     Write-Output "Unpacking -- $ZIPPackage"
-    $ZipSource = $TempFolder + "\" + $ZipPackage
+    $ZipSource = $TempFolder.FullName + "\" + $ZipPackage
     
     Add-Type -AssemblyName “system.io.compression.filesystem”
     [io.compression.zipfile]::ExtractToDirectory($ZipSource, $UnzipFolder)
