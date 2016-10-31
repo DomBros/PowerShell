@@ -1,0 +1,10 @@
+# Import module and set location to SCCM Drive
+Import-Module "D:\Program Files\Microsoft Configuration Manager\AdminConsole\bin\ConfigurationManager.psd1"
+Set-Location "P01:\"
+
+$Collections = Get-CMDeviceCollection -Name "*Application*" | % Name
+$Machine = Get-CMDevice -Name LAPTOP
+
+Foreach ($Collection in $Collections) {
+    Add-CMDeviceCollectionDirectMembershipRule -CollectionName $Collection -ResourceId $Machine.ResourceID
+}
